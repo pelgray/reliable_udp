@@ -67,6 +67,7 @@ public class RingBuffer {
     // возвращает сигнал, можно ли продолжать добавлять
     public boolean setStatus(int ind){
         for (int i = 0; i<capacity; i++){
+
             if (elements[i] != null && elements[i].num == ind) {
                 elements[i].status = true;
                 return (writePos == i || elements[writePos] == null);

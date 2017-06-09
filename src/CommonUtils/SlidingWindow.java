@@ -36,13 +36,16 @@ public class SlidingWindow {
                 DatagramPacket[] res = (DatagramPacket[]) buf.takeUnmarked();
                 isAllDelivered = (res.length == 0);
             }
-            return (isAllAdded&&isAllDelivered);
+            return (isAllDelivered);
         }
     }
 
     public boolean canPut() {
         synchronized (lock) {
-            canPut = buf.checkPut(); // ???
+            if (!isAllAdded) {
+                canPut = buf.checkPut(); // ???
+                lock.notify();
+            }
             return canPut;
         }
     }
@@ -77,7 +80,10 @@ public class SlidingWindow {
     public void setDelivered(int ind){
         synchronized (lock) {
             canPut = buf.setStatus(ind);
-            if (canPut&&!isAllAdded) lock.notifyAll();
+            DatagramPacket[] res = (DatagramPacket[]) buf.takeUnmarked();
+            isAllDelivered = (res.length == 0);
+            //if (!isAllAdded)
+                lock.notifyAll();
         }
     }
 

@@ -63,7 +63,7 @@ public class ClientSender implements CallBack {
             System.out.println("Create and send init pack. Size " + packet.getLength());
             numOfPack_++;
             while (isActive_) {
-                while (window_.canPut() && !isAllAdded_) {
+                while (window_.canPut() || !isAllAdded_) {
                     // создание пакетов
                     bytes = byteChannel_.take();
                     data = new byte[packSize_];

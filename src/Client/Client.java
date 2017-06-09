@@ -85,7 +85,7 @@ public class Client implements CallBack {
 //            e_.write("An error occurred while reading name of file.");
 //            return;
 //        }
-        filename_ = "THE EVOLUTION OF BUCK-TICK [1987-2015].mp4";
+        filename_ = "Patterny_proektirovania.pdf";
 
         file_ = new File(folder_, filename_);
 
