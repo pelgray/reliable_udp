@@ -18,30 +18,26 @@ import java.net.SocketException;
 public class Server implements CallBack{
     private int sendPort_; // для сообщений
     private int receivePort_; // для данных
+    private String host_;
     private LogMessageErrorWriter err_;
 
-
     private boolean isActive_;
-    private int packSize_ = 6000; //размер одного пакета
-    int winSize_ = 5; //размер окна, а также циклического буфера 5
-    BufferedReader bR_;
-    int channelSize_ = 5000;
-    private long countPack;
+    private final int packSize_ = 2048; //размер одного пакета
+    private final int winSize_ = 5; //размер окна, а также циклического буфера 5
+    private final int channelSize_ = 5000;
     private SlidingWindow window_;
-    private String host_;
-
-
 
     private File file_;
     private File folder_;
     private String filename_;
     private DatagramSocket sendSocket_;
     private DatagramSocket receiveSocket_;
+    private Server classServer_;
 
     // запускаемые в отдельных потоках классы
-    FileWriter classFileWriter_;
-    ServerSender classSender_;
-    ServerReceiver classReceiver_;
+    private FileWriter classFileWriter_;
+    private ServerSender classSender_;
+    private ServerReceiver classReceiver_;
 
 
     public Server(int receivePort_,String host, int sendPort_, LogMessageErrorWriter err_) {
@@ -49,45 +45,20 @@ public class Server implements CallBack{
         this.receivePort_ = receivePort_;
         this.err_ = err_;
         host_ = host;
+        classServer_ = this;
         isActive_ = true;
-        bR_ = new BufferedReader(new InputStreamReader(System.in));
-    }
-
-    public void setCountPack(long num){
-        countPack = num;
-        classFileWriter_.setCountPack(num);
-        classSender_.setCountPack(num);
+        folder_ = new File("c:"+File.separator+"udp_directory_server");// папка для файлов на прием
+        if(!folder_.exists()) {
+            folder_.mkdir();
+        }
     }
 
     public boolean isActive(){
         return isActive_;
     }
 
-    @Override
-    public void stop() {
-        if (isActive_){
-            isActive_ = false;
-            classReceiver_.stop();
-            classSender_.stop();
-            classFileWriter_.stop();
-        }
-    }
-
-    @Override
-    public void run() {
-        folder_ = new File("c:"+File.separator+"udp_directory_server");// папка для файлов на прием
-        if(!folder_.exists()) {
-            folder_.mkdir();
-        }
-
-//        System.out.println("Enter filename: ");
-//        try {
-//            filename_ = bR_.readLine();
-//        } catch (IOException e) {
-//            err_.write("An error occurred while reading name of file.");
-//            return;
-//        }
-        filename_ = "java-design-patterns-master.zip";
+    public void startFileWriter(String filename, long countPack){
+        filename_ = filename;
 
         file_ = new File(folder_, filename_);
 
@@ -100,6 +71,24 @@ public class Server implements CallBack{
         } catch (IOException e) {
             err_.write("An error while creating a new file: " + e.getMessage());
         }
+        classFileWriter_ = new FileWriter(window_, file_, err_, classServer_, countPack);
+        Thread threadFileWriter = new Thread(classFileWriter_);
+        threadFileWriter.setName("FILE_WRITER");
+        threadFileWriter.start();
+    }
+
+    @Override
+    public void stop() {
+        if (isActive_){
+            isActive_ = false;
+            if (classReceiver_ != null) classReceiver_.stop();
+            if (classSender_ != null) classSender_.stop();
+            if (classFileWriter_ != null) classFileWriter_.stop();
+        }
+    }
+
+    @Override
+    public void run() {
         try {
             receiveSocket_ = new DatagramSocket(receivePort_);
         } catch (SocketException e) {
@@ -122,12 +111,6 @@ public class Server implements CallBack{
         Thread threadServerSender = new Thread(classSender_);
         threadServerSender.setName("SERVER_SENDER");
         threadServerSender.start();
-
-        classFileWriter_ = new FileWriter(window_, file_, err_, this);
-        Thread threadFileWriter = new Thread(classFileWriter_);
-        threadFileWriter.setName("FILE_WRITER");
-        threadFileWriter.start();
-        System.out.println("\tBye, ServerMain");
     }
 
     @Override

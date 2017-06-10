@@ -2,7 +2,9 @@ package Server;
 
 import CommonUtils.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -20,7 +22,7 @@ public class ServerReceiver implements Stoppable {
     private SlidingWindow window_;
     private Server classServer_;
     private long countPack_;
-    long start;
+    private long lastSize_;
 
     public ServerReceiver(DatagramSocket datagramSocket_, int packSize_, LogMessageErrorWriter err_, Server classServer_, SlidingWindow win) {
         this.datagramSocket_ = datagramSocket_;
@@ -47,8 +49,7 @@ public class ServerReceiver implements Stoppable {
             byte[] datagramBuffer = new byte[packSize_];
             DatagramPacket packet = new DatagramPacket(datagramBuffer, packSize_);
 
-            start = System.currentTimeMillis();
-            System.out.println("In waiting packets...\nTIME: " + LocalDateTime.now());
+            System.out.println("In waiting packets...");
             while (isActive_) {
                 try {
                     datagramSocket_.receive(packet);
@@ -65,28 +66,41 @@ public class ServerReceiver implements Stoppable {
                 System.arraycopy(datagramBuffer, 0, byteIndex, 0, 4);
                 int index = ByteBuffer.wrap(byteIndex).getInt();
 
-                if (index == 0) {
-                    System.arraycopy(datagramBuffer, 4, data, 0, 8);
-                    countPack_ = ByteBuffer.wrap(datagramBuffer, 4, 8).getLong();
-                    classServer_.setCountPack(countPack_);
-                    System.out.println("Will be received " + countPack_ + " packets.");
-                } else {
-                    data = new byte[packSize_ - 4];
-                    System.arraycopy(datagramBuffer, 4, data, 0, packSize_ - 4);
+                if (index != 0) {
+                    if (index != countPack_){
+                        data = new byte[packSize_ - 4];
+                        System.arraycopy(datagramBuffer, 4, data, 0, packSize_ - 4);
+                    }
+                    else {
+                        data = new byte[(int)lastSize_];
+                        System.arraycopy(datagramBuffer, 4, data, 0, (int)lastSize_);
+                    }
                     window_.put(data, index);
                     //if (index%1000 == 0) System.out.println("Receive packet #" + index);
+                } else {
+                    System.arraycopy(datagramBuffer, 4, data, 0, datagramBuffer.length-4);
+                    ByteArrayInputStream in = new ByteArrayInputStream(data);
+                    InitPackage initPack = null;
+                    try {
+                        ObjectInputStream ois = new ObjectInputStream(in);
+                        initPack = (InitPackage) ois.readObject();
+                        in.close();
+                        ois.close();
+                    } catch (IOException | ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    lastSize_ = initPack.getSizeLastPack();
+                    countPack_ = initPack.getCountPack();
+                    classServer_.startFileWriter(initPack.getFilename(), countPack_);
+                    System.out.println("Will be received " + countPack_ + " packets.");
                 }
                 classServer_.setDeliveredPacket(index);
                 if (!classServer_.isActive()) {
                     isActive_ = false;
-
                 }
             }
         }
         finally {
-            long finish = System.currentTimeMillis();
-            System.out.println("END TIME: " + LocalDateTime.now());
-            System.out.println("ALL TIME: " + (finish - start));
             datagramSocket_.close();
             System.out.println("\tBye, ServerReceiver");
         }

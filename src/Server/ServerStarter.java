@@ -1,6 +1,5 @@
 package Server;
 
-import Client.Client;
 import CommonUtils.LogMessageErrorFactoryMethod;
 import CommonUtils.LogMessageErrorWriter;
 
@@ -34,8 +33,8 @@ public class ServerStarter {
             return;
         }
 
-        System.out.println("наш порт = " + port_+
-                "\nпорт клиента = " + clientPort_);
+        System.out.println("The own port = " + port_+
+                "\nThe client port = " + clientPort_);
 
         Server classServer = new Server(port_, host_, clientPort_, errorWriter);
         Thread server = new Thread(classServer);

@@ -1,6 +1,7 @@
 package Client;
 
 import CommonUtils.Channel;
+import CommonUtils.InitPackage;
 import CommonUtils.LogMessageErrorWriter;
 import CommonUtils.Stoppable;
 
@@ -47,12 +48,23 @@ public class FileReader implements Stoppable {
         }
         try {
             countPack_ = file_.length()/sizeArr_ + ((file_.length()%sizeArr_ == 0)?0:1);
-            System.out.println("Will be created "+ countPack_ + " packets.");
             classClient_.setCountPack(countPack_);
-            // количество пакетов
-            channel_.put(ByteBuffer.allocate(Long.BYTES).putLong(countPack_).array());
-
-            //int currArr = 1;
+            long lastSize = file_.length() - sizeArr_* (countPack_- ((file_.length()%sizeArr_ == 0)?0:1));
+            ByteArrayOutputStream outs = new ByteArrayOutputStream();
+            InitPackage initPack = new InitPackage(file_.getName(), countPack_, lastSize);
+            try {
+                ObjectOutputStream oos = new ObjectOutputStream(outs);
+                oos.writeObject(initPack);
+                oos.flush();
+                oos.close();
+            } catch (IOException e) {
+                e_.write("Can't did serialization: " + e.getMessage());
+                return;
+            }
+            byte[] initBytes = outs.toByteArray();
+            System.out.println("Will be created "+ countPack_ + " packets. InitPack has size = " + initBytes.length + ". LastSize = "+lastSize);
+            // инициализирующий пакет
+            channel_.put(initBytes);
             while (isActive_) {
                 try {
                     if (fis_.available() != 0) {
@@ -64,8 +76,6 @@ public class FileReader implements Stoppable {
                             return;
                         }
                         channel_.put(bytes);
-                        //System.out.println("Was put in channel " + currArr + " part of file.");
-                        //currArr++;
                     }
                     else {
                         isActive_ = false;

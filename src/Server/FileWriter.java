@@ -20,22 +20,21 @@ public class FileWriter implements Stoppable {
     private FileOutputStream fos_;
     private LogMessageErrorWriter err_;
     private Server classServer_;
+    private File file_;
 
-    public FileWriter(SlidingWindow window_, File file_, LogMessageErrorWriter errorWriter, Server server) {
+    public FileWriter(SlidingWindow window_, File file, LogMessageErrorWriter errorWriter, Server server, long countPack) {
         this.isActive_ = true;
         this.window_ = window_;
         this.err_ = errorWriter;
         classServer_ = server;
+        this.countPack_ = countPack;
         currCountPack_ = 1;
+        file_ = file;
         try {
-            this.fos_ = new FileOutputStream(file_);
+            this.fos_ = new FileOutputStream(file);
         } catch (FileNotFoundException e) {
             err_.write("File not found.");
         }
-    }
-
-    public void setCountPack(long countPack_) {
-        this.countPack_ = countPack_;
     }
 
     @Override
@@ -48,7 +47,6 @@ public class FileWriter implements Stoppable {
     @Override
     public void run() {
         try {
-            System.out.println("In waiting parts of file...");
             while (isActive_) {
                 byte[] bytes = (byte[]) window_.take();
                 try {
@@ -56,7 +54,7 @@ public class FileWriter implements Stoppable {
                 } catch (IOException e) {
                     err_.write("Can't write in file: " + e.getMessage());
                 }
-                if (currCountPack_%1000 == 0) System.out.println("\t\tWrote #" + currCountPack_);
+                //if (currCountPack_%1000 == 0) System.out.println("\t\tWrote #" + currCountPack_);
                 if (currCountPack_ == countPack_) {
                     isActive_ = false;
                 }
@@ -67,6 +65,13 @@ public class FileWriter implements Stoppable {
                 fos_.close();
             } catch (IOException e) {
                 err_.write("Can't close file output stream: "+e.getMessage());
+            }
+            System.out.printf("A '%s' file of size ", file_.getName());
+            long size = file_.length();
+            if (size<1000) System.out.printf("[%d B] was received.%n", size);
+            else {
+                if (size < 1000000) System.out.printf("[%,.2f KB] was received.%n", size * 0.001);
+                else System.out.printf("[%,.2f MB] was received.%n", size * 1e-6);
             }
             System.out.println("\tBye, FileWriter");
             classServer_.stop();

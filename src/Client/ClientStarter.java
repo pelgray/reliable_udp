@@ -39,8 +39,8 @@ public class ClientStarter {
             return;
         }
 
-        System.out.println("наш порт = " + port_+
-                            "\nпорт сервера = " + servPort_);
+        System.out.println("The own port = " + port_+
+                            "\nThe server port = " + servPort_);
 
         Client classClient = new Client(port_, host_, servPort_, errorWriter);
         Thread client = new Thread(classClient);

@@ -6,6 +6,7 @@ import CommonUtils.LogMessageErrorWriter;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
@@ -15,41 +16,34 @@ import java.net.SocketException;
  * Created by 1 on 06.06.2017.
  */
 public class Client implements CallBack {
-    // из аргументов:
-    // порт для передачи файла
-    // адрес, куда
-    // порт для приема сообщений
-
-
     // путь к файлу - спрашивается при запуске (точнее, название файла в отведенной папке)
 
     private boolean isActive_;
-    int port_; //порт для приема сообщений
-    String host_; // адрес, куда
-    final int packSize_ = 6000; //размер одного пакета
-    int winSize_ = 5; //размер окна, а также циклического буфера 5
-    int serverPort_; // порт для передачи данных
-    BufferedReader bR_;
-    LogMessageErrorWriter e_;
-    int channelSize_ = 5000;
-    private long countPack = 0;
+    private final int packSize_ = 2048; //размер одного пакета
+    private final int winSize_ = 5; //размер окна, а также циклического буфера 5
+    private int channelSize_ = 5000;
+    private LogMessageErrorWriter e_;
 
-    public void setCountPack(long num) {
-        this.countPack = num;
-        classSender_.setCountOfPack(num);
-    }
+    private int port_; //порт для приема сообщений
+    private String host_; // адрес, куда
+    private int serverPort_; // порт для передачи данных
+    private BufferedReader bR_;
 
-    private File file_;
-    private File folder_;
-    private String filename_;
-    private DatagramSocket sendSocket_;
-    private DatagramSocket receiveSocket_;
+    private File file_; // файл, который будем передавать
+    private File folder_; // папка, в которой этот файл находится
+    private String filename_; // название файла
+    private DatagramSocket sendSocket_; // сокет для передачи данных
+    private DatagramSocket receiveSocket_; // сокет для приема подтверждений
 
     // запускаемые в отдельных потоках классы
-    FileReader classFileReader_;
-    ClientSender classSender_;
-    ClientReceiver classReceiver_;
+    private FileReader classFileReader_;
+    private ClientSender classSender_;
+    private ClientReceiver classReceiver_;
 
+
+    public void setCountPack(long num) {
+        classSender_.setCountOfPack(num);
+    }
 
     public Client(int port, String host, int servPort, LogMessageErrorWriter errorWriter) {
         port_ = port;
@@ -57,6 +51,10 @@ public class Client implements CallBack {
         serverPort_ = servPort;
         e_ = errorWriter;
         isActive_ = true;
+        folder_ = new File("c:"+File.separator+"udp_directory_client");// папка для файлов на отправку
+        if(!folder_.exists()) {
+            folder_.mkdir();
+        }
 
         bR_ = new BufferedReader(new InputStreamReader(System.in));
     }
@@ -65,27 +63,43 @@ public class Client implements CallBack {
     public void stop() {
         if (isActive_) {
             isActive_ = false;
-            classFileReader_.stop();
-            classSender_.stop();
-            classReceiver_.stop();
+            if (classFileReader_ != null) classFileReader_.stop();
+            if (classSender_ != null) classSender_.stop();
+            if (classReceiver_ != null) classReceiver_.stop();
         }
     }
 
     @Override
     public void run() {
-        folder_ = new File("c:"+File.separator+"udp_directory_client");// папка для файлов на отправку
-        if(!folder_.exists()) {
-            folder_.mkdir();
+        System.out.println("Choose file. Please, write the number from list:");
+        File[] listFiles = folder_.listFiles();
+        for (int i = 0; i<listFiles.length; i++){
+            System.out.println("\t" + i + ") " + listFiles[i].getName());
+            long size = listFiles[i].length();
+            if (size<1000) System.out.printf("\t\t\t\t[SIZE: %d B]%n", size);
+            else {
+                if (size < 1000000) System.out.printf("\t\t\t\t[SIZE: %,.2f KB]%n", size * 0.001);
+                else System.out.printf("\t\t\t\t[SIZE: %,.2f MB]%n", size * 1e-6);
+            }
         }
-
-//        System.out.println("Enter filename: ");
-//        try {
-//            filename_ = bR_.readLine();
-//        } catch (IOException e) {
-//            e_.write("An error occurred while reading name of file.");
-//            return;
-//        }
-        filename_ = "java-design-patterns-master.zip";
+        int number;
+        try {
+            number = Integer.parseInt(bR_.readLine());
+        }  catch (NumberFormatException e) {
+            e_.write("It is not number. Try again.");
+            return;
+        } catch (IOException e) {
+            e_.write("An error occurred while reading number from list.");
+            return;
+        }
+        if (number>=0 && number<listFiles.length) {
+            filename_ = listFiles[number].getName();
+            System.out.println("Ok, you choose a file: " + filename_);
+        }
+        else {
+            System.out.println("This number is not in the list. Try again.");
+            return;
+        }
 
         file_ = new File(folder_, filename_);
 
@@ -93,10 +107,6 @@ public class Client implements CallBack {
             e_.write("File not found.");
             return;
         }
-
-
-        //Channel<DatagramPacket> packetChannel_ = new Channel<>(channelSize_, e_);
-
 
         Channel<byte[]> byteChannel_ = new Channel<>(channelSize_, e_);
         classFileReader_ = new FileReader(this, file_,packSize_-4,byteChannel_,e_);
@@ -129,8 +139,6 @@ public class Client implements CallBack {
         Thread threadClientReceiver = new Thread(classReceiver_);
         threadClientReceiver.setName("CLIENT_RECEIVER");
         threadClientReceiver.start();
-
-        System.out.println("\tBye, ClientMain");
     }
 
     @Override

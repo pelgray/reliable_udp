@@ -15,11 +15,10 @@ import java.nio.ByteBuffer;
  */
 public class ServerSender implements CallBack {
     private boolean isActive_;
-    private long countPack_;
     private Channel<Integer> channelIndex_;
     private DatagramSocket datagramSocket_;
     private LogMessageErrorWriter err_;
-    InetSocketAddress clientAddr_;
+    private InetSocketAddress clientAddr_;
 
     public ServerSender(DatagramSocket datagramSocket_, LogMessageErrorWriter err_, int channelSize, InetSocketAddress clientAddr) {
         this.datagramSocket_ = datagramSocket_;
@@ -27,10 +26,6 @@ public class ServerSender implements CallBack {
         this.isActive_ = true;
         this.channelIndex_ = new Channel<>(channelSize, err_);
         this.clientAddr_ = clientAddr;
-    }
-
-    public void setCountPack(long countPack_) {
-        this.countPack_ = countPack_;
     }
 
     @Override
@@ -42,7 +37,6 @@ public class ServerSender implements CallBack {
 
     @Override
     public void run() {
-        System.out.println("In waiting numbers of packets...");
         try {
             while (isActive_) {
                 if (channelIndex_.getSize() != 0) {
