@@ -26,7 +26,7 @@ public class Client implements CallBack {
     private boolean isActive_;
     int port_; //порт для приема сообщений
     String host_; // адрес, куда
-    final int packSize_ = 5000; //размер одного пакета
+    final int packSize_ = 6000; //размер одного пакета
     int winSize_ = 5; //размер окна, а также циклического буфера 5
     int serverPort_; // порт для передачи данных
     BufferedReader bR_;
@@ -85,7 +85,7 @@ public class Client implements CallBack {
 //            e_.write("An error occurred while reading name of file.");
 //            return;
 //        }
-        filename_ = "Patterny_proektirovania.pdf";
+        filename_ = "java-design-patterns-master.zip";
 
         file_ = new File(folder_, filename_);
 

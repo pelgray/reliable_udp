@@ -54,7 +54,7 @@ public class ServerSender implements CallBack {
                     } catch (IOException e) {
                         err_.write("Can't send a number of received packet: " + e.getMessage());
                     }
-                    //System.out.println("Confirmed receipt of packet #" + index);
+                    //System.out.println("\tConfirmed #" + index);
                 }
             }
         }

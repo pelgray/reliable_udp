@@ -14,95 +14,46 @@ public class SlidingWindow {
     private boolean canTake = false; // можно ли забрать объект
     private final Object lock = new Object();
     private LogMessageErrorWriter err;
-    private long countOfPack;
-    private boolean isAllDelivered;
-    private boolean isAllAdded;
 
     public SlidingWindow(int size, LogMessageErrorWriter errorWriter) {
         this.size = size;
         this.err = errorWriter;
         buf = new RingBuffer(size);
-        isAllDelivered = false;
-        isAllAdded = false;
     }
 
-    public void setCountOfPack(long countOfPack) {
-        this.countOfPack = countOfPack;
-    }
-
-    public boolean isAllDelivered() {
+    // для стороны отправки
+    public boolean put(Object pack){
         synchronized (lock) {
-            if (isAllAdded){
-                DatagramPacket[] res = (DatagramPacket[]) buf.takeUnmarked();
-                isAllDelivered = (res.length == 0);
-            }
-            return (isAllDelivered);
-        }
-    }
-
-    public boolean canPut() {
-        synchronized (lock) {
-            if (!isAllAdded) {
-                canPut = buf.checkPut(); // ???
-                lock.notify();
-            }
-            return canPut;
-        }
-    }
-
-    public void setAllAdded(){
-        synchronized (lock){
-            isAllAdded = true;
-            canPut = false;
+            buf.put(new Struct(currNum, pack));
+            currNum++;
+            return buf.checkPut();
         }
     }
 
     // для стороны отправки
-    public void put(Object pack){
+    public boolean checkPut(){
         synchronized (lock) {
-            if(!isAllAdded) {
-                while (!canPut) {
-                    try {
-                        lock.wait();
-                    } catch (InterruptedException e) {
-                        err.write("The error of waiting in 'put'-condition.");
-                    }
-                }
-                buf.put(new Struct(currNum, pack));
-                currNum++;
-                //if (buf.available() == size) canPut = false;
-                canPut = buf.checkPut();
-            }
+            return buf.checkPut();
         }
     }
 
     // для стороны отправки
-    public void setDelivered(int ind){
+    public boolean setDelivered(int ind){
         synchronized (lock) {
-            canPut = buf.setStatus(ind);
-            DatagramPacket[] res = (DatagramPacket[]) buf.takeUnmarked();
-            isAllDelivered = (res.length == 0);
-            //if (!isAllAdded)
-                lock.notifyAll();
+            return buf.setStatus(ind);
         }
     }
 
     // для стороны отправки
     public DatagramPacket[] getNonDelivered(){
         synchronized (lock) {
-            if(canPut) {
-                try {
-                    lock.wait(5000);
-                } catch (InterruptedException e) {
-                    err.write("The error of waiting in 'put'-condition.");
-                }
-            }
-            DatagramPacket[] res = (DatagramPacket[]) buf.takeUnmarked();
-            if (res.length == 0) isAllDelivered = true;
-            return res;
+            return buf.takeUnmarked().clone();
         }
     }
 
+
+
+    //---------------------------------------------------------------------------------------------------------------------------------------
     // для стороны приема
     public void put(Object ob, int ind){
         synchronized (lock) {
@@ -113,13 +64,15 @@ public class SlidingWindow {
                     err.write("The error of waiting in 'put'-condition.");
                 }
             }
-            buf.put(new Struct(ind, ob));
-            //System.out.println("Receive packet #" + ind);
-            if (ind == currInd){
-                canTake = true;
-                lock.notify();
+            if (ind >= currInd) {
+                buf.put(new Struct(ind, ob));
+                if (ind == currInd){
+                    canTake = true;
+                    lock.notify();
+                }
+                canPut = buf.checkPut();
             }
-            canPut = buf.checkPut();
+            //System.out.println("Receive packet #" + ind);
         }
     }
 
@@ -138,7 +91,7 @@ public class SlidingWindow {
             currInd++;
             canTake = buf.checkTake(currInd);
             canPut = buf.checkPut();
-            lock.notify();
+            if (canPut) lock.notify();
             return rtn;
         }
     }

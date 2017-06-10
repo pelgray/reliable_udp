@@ -56,7 +56,7 @@ public class FileWriter implements Stoppable {
                 } catch (IOException e) {
                     err_.write("Can't write in file: " + e.getMessage());
                 }
-                //System.out.println("Wrote " + currCountPack_ + " part of file");
+                if (currCountPack_%1000 == 0) System.out.println("\t\tWrote #" + currCountPack_);
                 if (currCountPack_ == countPack_) {
                     isActive_ = false;
                 }

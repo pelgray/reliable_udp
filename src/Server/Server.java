@@ -22,7 +22,7 @@ public class Server implements CallBack{
 
 
     private boolean isActive_;
-    private int packSize_ = 5000; //размер одного пакета
+    private int packSize_ = 6000; //размер одного пакета
     int winSize_ = 5; //размер окна, а также циклического буфера 5
     BufferedReader bR_;
     int channelSize_ = 5000;
@@ -87,7 +87,7 @@ public class Server implements CallBack{
 //            err_.write("An error occurred while reading name of file.");
 //            return;
 //        }
-        filename_ = "Patterny_proektirovania.pdf";
+        filename_ = "java-design-patterns-master.zip";
 
         file_ = new File(folder_, filename_);
 
