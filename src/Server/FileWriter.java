@@ -10,17 +10,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * Created by 1 on 06.06.2017.
+ * Created by pelgray on 06.06.2017.
  */
 public class FileWriter implements Stoppable {
     private boolean isActive_;
-    private long countPack_;
+    private final long countPack_;
     private long currCountPack_;
-    private SlidingWindow window_;
+    private final SlidingWindow window_;
     private FileOutputStream fos_;
-    private LogMessageErrorWriter err_;
-    private Server classServer_;
-    private File file_;
+    private final LogMessageErrorWriter err_;
+    private final Server classServer_;
+    private final File file_;
 
     public FileWriter(SlidingWindow window_, File file, LogMessageErrorWriter errorWriter, Server server, long countPack) {
         this.isActive_ = true;
@@ -54,7 +54,7 @@ public class FileWriter implements Stoppable {
                 } catch (IOException e) {
                     err_.write("Can't write in file: " + e.getMessage());
                 }
-                //if (currCountPack_%1000 == 0) System.out.println("\t\tWrote #" + currCountPack_);
+                //System.out.println("\t\tWrote #" + currCountPack_);
                 if (currCountPack_ == countPack_) {
                     isActive_ = false;
                 }

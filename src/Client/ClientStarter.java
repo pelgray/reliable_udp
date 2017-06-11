@@ -6,9 +6,9 @@ import CommonUtils.LogMessageErrorWriter;
 import static CommonUtils.MessageErrorType.STANDARD;
 
 /**
- * Created by 1 on 06.06.2017.
+ * Created by pelgray on 06.06.2017.
  */
-public class ClientStarter {
+class ClientStarter {
     public static void main(String[] args) {
         int port_; // порт для передачи данных
         String host_; // адрес, куда

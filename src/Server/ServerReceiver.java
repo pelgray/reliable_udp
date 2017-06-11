@@ -9,18 +9,17 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
-import java.time.LocalDateTime;
 
 /**
- * Created by 1 on 06.06.2017.
+ * Created by pelgray on 06.06.2017.
  */
 public class ServerReceiver implements Stoppable {
     private boolean isActive_;
-    private DatagramSocket datagramSocket_;
-    private int packSize_;
-    private LogMessageErrorWriter err_;
-    private SlidingWindow window_;
-    private Server classServer_;
+    private final DatagramSocket datagramSocket_;
+    private final int packSize_;
+    private final LogMessageErrorWriter err_;
+    private final SlidingWindow window_;
+    private final Server classServer_;
     private long countPack_;
     private long lastSize_;
 
@@ -76,7 +75,7 @@ public class ServerReceiver implements Stoppable {
                         System.arraycopy(datagramBuffer, 4, data, 0, (int)lastSize_);
                     }
                     window_.put(data, index);
-                    //if (index%1000 == 0) System.out.println("Receive packet #" + index);
+                    //System.out.println("Receive #" + index);
                 } else {
                     System.arraycopy(datagramBuffer, 4, data, 0, datagramBuffer.length-4);
                     ByteArrayInputStream in = new ByteArrayInputStream(data);
@@ -89,7 +88,7 @@ public class ServerReceiver implements Stoppable {
                     } catch (IOException | ClassNotFoundException e) {
                         e.printStackTrace();
                     }
-                    lastSize_ = initPack.getSizeLastPack();
+                    lastSize_ = initPack != null ? initPack.getSizeLastPack() : 0;
                     countPack_ = initPack.getCountPack();
                     classServer_.startFileWriter(initPack.getFilename(), countPack_);
                     System.out.println("Will be received " + countPack_ + " packets.");

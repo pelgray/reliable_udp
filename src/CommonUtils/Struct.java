@@ -1,12 +1,12 @@
 package CommonUtils;
 
 /**
- * Created by 1 on 07.06.2017.
+ * Created by pelgray on 07.06.2017.
  */
 public class Struct{
-    int num;
+    final int num;
     boolean status; // true - доставлено
-    Object data;
+    final Object data;
 
     public Struct(int num, Object data) {
         this.num = num;

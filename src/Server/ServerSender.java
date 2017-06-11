@@ -11,14 +11,14 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 /**
- * Created by 1 on 06.06.2017.
+ * Created by pelgray on 06.06.2017.
  */
 public class ServerSender implements CallBack {
     private boolean isActive_;
-    private Channel<Integer> channelIndex_;
-    private DatagramSocket datagramSocket_;
-    private LogMessageErrorWriter err_;
-    private InetSocketAddress clientAddr_;
+    private final Channel<Integer> channelIndex_;
+    private final DatagramSocket datagramSocket_;
+    private final LogMessageErrorWriter err_;
+    private final InetSocketAddress clientAddr_;
 
     public ServerSender(DatagramSocket datagramSocket_, LogMessageErrorWriter err_, int channelSize, InetSocketAddress clientAddr) {
         this.datagramSocket_ = datagramSocket_;

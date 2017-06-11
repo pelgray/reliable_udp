@@ -3,7 +3,7 @@ package CommonUtils;
 import java.net.DatagramPacket;
 
 /**
- * Created by 1 on 06.06.2017.
+ * Created by pelgray on 06.06.2017.
  */
 public class SlidingWindow {
     private RingBuffer buf = null;
@@ -12,11 +12,18 @@ public class SlidingWindow {
     private boolean canPut = true; // можно ли добавить объект
     private boolean canTake = false; // можно ли забрать объект
     private final Object lock = new Object();
-    private LogMessageErrorWriter err;
+    private final LogMessageErrorWriter err;
 
     public SlidingWindow(int size, LogMessageErrorWriter errorWriter) {
         this.err = errorWriter;
         buf = new RingBuffer(size);
+    }
+
+    // для стороны отправки
+    public int available(){
+        synchronized (lock){
+            return buf.available();
+        }
     }
 
     // для стороны отправки

@@ -1,12 +1,12 @@
 package CommonUtils;
 
-/**
- * Created by 1 on 07.04.2017.
- */
 public enum MessageErrorType {
     SHORTCUT("shortcut"), DETAILED("detailed"), STANDARD("standard");
 
-    private String title;
+    /**
+     * Created by pelgray on 07.04.2017.
+     */
+    private final String title;
 
     MessageErrorType(String title) {
         this.title = title;

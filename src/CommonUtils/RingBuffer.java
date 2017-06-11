@@ -1,14 +1,13 @@
 package CommonUtils;
 
 import java.net.DatagramPacket;
-import java.nio.ByteBuffer;
 import java.util.LinkedList;
 
 /**
- * Created by 1 on 07.06.2017.
+ * Created by pelgray on 07.06.2017.
  */
-public class RingBuffer {
-    public Struct[] elements = null;
+class RingBuffer {
+    private Struct[] elements = null;
 
     private int capacity  = 0; // максимальное количество объектов
     private int writePos  = 0; // позиция, на которой остановились
@@ -20,8 +19,12 @@ public class RingBuffer {
         this.elements = new Struct[capacity];
     }
 
-    public boolean checkPut(){
-        return (elements[writePos] == null) || (elements[writePos].status);
+    public int available(){
+        return available;
+    }
+
+    public boolean checkPut() {
+        return available < capacity && ((elements[writePos] == null) || (elements[writePos].status));
     }
 
     public boolean checkTake(int ind){
@@ -49,16 +52,15 @@ public class RingBuffer {
         if(!existSmth){
             return null;
         }
-        int in = -1;
         for (int i = 0; i<capacity; i++){
             if (elements[i] != null && elements[i].num == ind) {
                 elements[i].status = true;
                 available--;
                 if (available == 0) existSmth = false;
-                in = i;
+                return elements[i].data;
             }
         }
-        return (in == -1)? null : elements[in].data;
+        return null;
     }
     
     // возвращает сигнал, можно ли продолжать добавлять
@@ -66,16 +68,20 @@ public class RingBuffer {
         for (int i = 0; i<capacity; i++){
             if (elements[i] != null && elements[i].num == ind) {
                 elements[i].status = true;
+                available--;
+                if (available == 0) existSmth = false;
             }
         }
-        return (elements[writePos] == null||elements[writePos].status);
+        return available < capacity && ((elements[writePos] == null) || (elements[writePos].status));
     }
 
     public DatagramPacket[] takeUnmarked(){
         LinkedList<Object> res = new LinkedList<>();
-        for (int i = 0; i<capacity; i++){
-            if (elements[i] != null && !elements[i].status) {
-                res.add(elements[i].data);
+        if (existSmth){
+            for (int i = 0; i<capacity; i++){
+                if (elements[i] != null && !elements[i].status) {
+                    res.add(elements[i].data);
+                }
             }
         }
         return res.toArray(new DatagramPacket[res.size()]);

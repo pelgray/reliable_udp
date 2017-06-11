@@ -6,20 +6,17 @@ import CommonUtils.LogMessageErrorWriter;
 import CommonUtils.Stoppable;
 
 import java.io.*;
-import java.nio.ByteBuffer;
 
 /**
- * Created by 1 on 06.06.2017.
+ * Created by pelgray on 06.06.2017.
  */
 public class FileReader implements Stoppable {
     private boolean isActive_;
-    private File file_;
-    private FileInputStream fis_;
-    private LogMessageErrorWriter e_;
-    private Channel<byte[]> channel_;
+    private final File file_;
+    private final LogMessageErrorWriter e_;
+    private final Channel<byte[]> channel_;
     private final int sizeArr_;
-    private Client classClient_;
-    private long countPack_;
+    private final Client classClient_;
 
 
     public FileReader(Client client, File file, int size, Channel<byte[]> channel, LogMessageErrorWriter errorWriter) {
@@ -40,6 +37,7 @@ public class FileReader implements Stoppable {
 
     @Override
     public void run() {
+        FileInputStream fis_;
         try {
             fis_ = new FileInputStream(file_);
         } catch (FileNotFoundException e) {
@@ -47,9 +45,9 @@ public class FileReader implements Stoppable {
             return;
         }
         try {
-            countPack_ = file_.length()/sizeArr_ + ((file_.length()%sizeArr_ == 0)?0:1);
+            long countPack_ = file_.length() / sizeArr_ + ((file_.length() % sizeArr_ == 0) ? 0 : 1);
             classClient_.setCountPack(countPack_);
-            long lastSize = file_.length() - sizeArr_* (countPack_- ((file_.length()%sizeArr_ == 0)?0:1));
+            long lastSize = file_.length() - sizeArr_* (countPack_ - ((file_.length()%sizeArr_ == 0)?0:1));
             ByteArrayOutputStream outs = new ByteArrayOutputStream();
             InitPackage initPack = new InitPackage(file_.getName(), countPack_, lastSize);
             try {

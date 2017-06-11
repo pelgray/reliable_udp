@@ -3,12 +3,12 @@ package CommonUtils;
 import java.util.LinkedList;
 
 /**
- * Created by 1 on 17.03.2017.
+ * Created by pelgray on 17.03.2017.
  */
 public class Channel<T> {
     private final int _maxObjects; // максимальное количество объектов, которое мы готовы принять на канал
     private final LinkedList<T> _queue = new LinkedList<>();
-    private LogMessageErrorWriter _errorWriter;
+    private final LogMessageErrorWriter _errorWriter;
 
     private final Object _lock = new Object();
 

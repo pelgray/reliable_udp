@@ -4,22 +4,20 @@ import CommonUtils.CallBack;
 import CommonUtils.LogMessageErrorWriter;
 import CommonUtils.SlidingWindow;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 
 /**
- * Created by 1 on 06.06.2017.
+ * Created by pelgray on 06.06.2017.
  */
 public class Server implements CallBack{
-    private int sendPort_; // для сообщений
-    private int receivePort_; // для данных
-    private String host_;
-    private LogMessageErrorWriter err_;
+    private final int sendPort_; // для сообщений
+    private final int receivePort_; // для данных
+    private final String host_;
+    private final LogMessageErrorWriter err_;
 
     private boolean isActive_;
     private final int packSize_ = 2048; //размер одного пакета
@@ -27,12 +25,8 @@ public class Server implements CallBack{
     private final int channelSize_ = 5000;
     private SlidingWindow window_;
 
-    private File file_;
-    private File folder_;
-    private String filename_;
-    private DatagramSocket sendSocket_;
-    private DatagramSocket receiveSocket_;
-    private Server classServer_;
+    private final File folder_;
+    private final Server classServer_;
 
     // запускаемые в отдельных потоках классы
     private FileWriter classFileWriter_;
@@ -58,9 +52,7 @@ public class Server implements CallBack{
     }
 
     public void startFileWriter(String filename, long countPack){
-        filename_ = filename;
-
-        file_ = new File(folder_, filename_);
+        File file_ = new File(folder_, filename);
 
         if (file_.exists()){
             err_.write("File was found and will be deleted.");
@@ -70,6 +62,7 @@ public class Server implements CallBack{
             file_.createNewFile();
         } catch (IOException e) {
             err_.write("An error while creating a new file: " + e.getMessage());
+            return;
         }
         classFileWriter_ = new FileWriter(window_, file_, err_, classServer_, countPack);
         Thread threadFileWriter = new Thread(classFileWriter_);
@@ -89,6 +82,7 @@ public class Server implements CallBack{
 
     @Override
     public void run() {
+        DatagramSocket receiveSocket_;
         try {
             receiveSocket_ = new DatagramSocket(receivePort_);
         } catch (SocketException e) {
@@ -101,6 +95,7 @@ public class Server implements CallBack{
         threadServerReceiver.setName("SERVER_RECEIVER");
         threadServerReceiver.start();
 
+        DatagramSocket sendSocket_;
         try {
             sendSocket_ = new DatagramSocket();
         } catch (SocketException e) {

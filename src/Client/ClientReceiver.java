@@ -8,12 +8,12 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 
 /**
- * Created by 1 on 06.06.2017.
+ * Created by pelgray on 06.06.2017.
  */
 public class ClientReceiver implements Stoppable {
     private boolean isActive_;
-    private Client classClient_;
-    private DatagramSocket datagramSocket_;
+    private final Client classClient_;
+    private final DatagramSocket datagramSocket_;
     private boolean senderFinished_ = false;
 
     public ClientReceiver(Client classClient, DatagramSocket datagramSocket_) {
@@ -53,7 +53,7 @@ public class ClientReceiver implements Stoppable {
                     e.printStackTrace();
                 }
                 int index = java.nio.ByteBuffer.wrap(packet.getData()).getInt();
-                //System.out.println("\tDelivered #" + index);
+                //System.out.println("\t\tDelivered #" + index);
                 classClient_.setDeliveredPacket(index);
                 if (senderFinished_) isActive_ = false;
             }

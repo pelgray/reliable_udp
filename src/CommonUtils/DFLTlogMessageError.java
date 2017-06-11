@@ -3,10 +3,10 @@ package CommonUtils;
 import java.util.Date;
 
 /**
- * Created by 1 on 07.04.2017.
+ * Created by pelgray on 07.04.2017.
  */
 public class DFLTlogMessageError implements LogMessageErrorWriter{
-    MessageErrorType _type;
+    private final MessageErrorType _type;
 
     public DFLTlogMessageError(MessageErrorType type) {
         _type = type;

@@ -9,27 +9,31 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
-import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
- * Created by 1 on 06.06.2017.
+ * Created by pelgray on 06.06.2017.
  */
 public class ClientSender implements CallBack {
     private boolean isActive_;
-    private SlidingWindow window_;
-    private LogMessageErrorWriter err_;
-    private DatagramSocket datagramSocket_;
-    private Channel<byte[]> byteChannel_;
-    private ClientReceiver classReceiver_;
+    private boolean isActiveTimer_;
+    private final SlidingWindow window_;
+    private final LogMessageErrorWriter err_;
+    private final DatagramSocket datagramSocket_;
+    private final Channel<byte[]> byteChannel_;
+    private final ClientReceiver classReceiver_;
     private long countOfPack_;
     private int numOfPack_ = 0;
-    private InetSocketAddress servAddr_;
-    private int packSize_;
+    private final InetSocketAddress servAddr_;
+    private final int packSize_;
     private boolean isAllAdded_;
     private boolean canPut_;
     private final Object lock_ = new Object();
+    private Timer timer = new Timer();
+    private final long TIME_OUT = 2000;
     private long start;
 
     public ClientSender(int winSize_, LogMessageErrorWriter errorWriter, DatagramSocket datagramSocket, Channel<byte[]> channel, ClientReceiver receiver, InetSocketAddress servAddr, int packSize) {
@@ -41,8 +45,16 @@ public class ClientSender implements CallBack {
         packSize_ = packSize;
         servAddr_ = servAddr;
         isActive_ = true;
+        isActiveTimer_ = true;
         canPut_ = true;
         isAllAdded_ = false;
+
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                resend();
+            }
+        }, 2*TIME_OUT, TIME_OUT);
     }
 
     @Override
@@ -63,9 +75,9 @@ public class ClientSender implements CallBack {
             System.arraycopy(index, 0, data, 0, 4);
             System.arraycopy(bytes, 0, data, 4, bytes.length);
             DatagramPacket packet = new DatagramPacket(data, data.length, servAddr_);
-            synchronized (lock_) {
+            //synchronized (lock_) {
                 canPut_ = window_.put(packet);
-            }
+            //}
             try {
                 datagramSocket_.send(packet);
             } catch (IOException e) {
@@ -82,11 +94,13 @@ public class ClientSender implements CallBack {
                     System.arraycopy(index, 0, data, 0, 4);
                     System.arraycopy(bytes, 0, data, 4, packSize_-4);
                     packet = new DatagramPacket(data, packSize_, servAddr_);
-                    //if (numOfPack_%1000 == 0) System.out.println("Send packet #" + numOfPack_);
-                    if (numOfPack_ == countOfPack_) {
+                    //System.out.println("Send packet #" + numOfPack_);
+                    if (numOfPack_ != countOfPack_) {
+                        numOfPack_++;
+                    }
+                    else {
                         isAllAdded_ = true;
                     }
-                    numOfPack_++;
                     synchronized (lock_) {
                         canPut_ = window_.put(packet);
                         //System.out.println("\t\tAfterSEND: canPut = " + canPut_);
@@ -98,26 +112,14 @@ public class ClientSender implements CallBack {
                     }
                 }
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                DatagramPacket[] packs = window_.getNonDelivered();
-                for (DatagramPacket pack : packs) {
-                    try {
-                        datagramSocket_.send(pack);
-                    } catch (IOException e) {
-                        err_.write("Can't send a packet: " + e.getMessage());
-                    }
-                    //System.out.println("\tResend packet #" + ByteBuffer.wrap(pack.getData(), 0, 4).getInt());
-                }
                 synchronized (lock_) {
-                    canPut_ = window_.checkPut();
+                    if (!isActiveTimer_) isActive_ = false;
                 }
-                if (isAllAdded_ && packs.length == 0) {
-                    isActive_ = false;
-                    classReceiver_.senderFinished();
-                }
+                //canPut_ = window_.checkPut();
             }
         }finally {
             datagramSocket_.close();
@@ -137,5 +139,32 @@ public class ClientSender implements CallBack {
 
     public void setCountOfPack(long num){
         countOfPack_ = num;
+    }
+
+    private void resend(){
+        DatagramPacket[] packs = null;
+            //synchronized (lock_) {
+            packs = window_.getNonDelivered();
+            //}
+            for (DatagramPacket pack : packs) {
+                try {
+                    datagramSocket_.send(pack);
+                } catch (IOException e) {
+                    err_.write("Can't send a packet: " + e.getMessage());
+                }
+                //System.out.println("\t\t\t\t\tResend packet #" + ByteBuffer.wrap(pack.getData(), 0, 4).getInt());
+            }
+            if (isAllAdded_ && packs.length == 0) {
+                synchronized (lock_) {
+                    isActiveTimer_ = false;
+                }
+                System.out.println("Timer is off.");
+                classReceiver_.senderFinished();
+                timer.cancel();
+            }
+            //synchronized (lock_) {
+            //canPut_ = window_.checkPut();
+            //}
+
     }
 }
