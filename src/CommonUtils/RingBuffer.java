@@ -39,6 +39,17 @@ class RingBuffer {
     }
 
     public void put(Struct element){
+            System.out.println("[BUFFER put BEFORE]: writePos " + writePos + ", element " + element.num);
+            for (int i = 0; i<capacity; i++){
+                if (elements[i] != null) {
+                    System.out.println("\t\t\t" + i + " #" + elements[i].num + " " + elements[i].status);
+                }
+                else{
+                    System.out.println("\t\t\t" + i + " is null");
+                }
+            }
+
+
         elements[writePos] = element;
         writePos++;
         if(writePos == capacity){
@@ -46,21 +57,60 @@ class RingBuffer {
         }
         if (available != capacity) available++;
         if (!existSmth) existSmth = true;
+
+
+            System.out.println("[BUFFER put AFTER]: writePos " + writePos + ", element " + element.num);
+            for (int i = 0; i<capacity; i++){
+                if (elements[i] != null) {
+                    System.out.println("\t\t\t" + i + " #" + elements[i].num + " " + elements[i].status);
+                }
+                else{
+                    System.out.println("\t\t\t" + i + " is null");
+                }
+            }
     }
 
     public Object take(int ind) {
+            System.out.println("[BUFFER take BEFORE]: writePos " + writePos + ", available " + available + ", element " + ind);
+            for (int i = 0; i<capacity; i++){
+                if (elements[i] != null) {
+                    System.out.println("\t\t\t" + i + " #" + elements[i].num + " " + elements[i].status);
+                }
+                else{
+                    System.out.println("\t\t\t" + i + " is null");
+                }
+            }
+
+
         if(!existSmth){
             return null;
         }
-        for (int i = 0; i<capacity; i++){
-            if (elements[i] != null && elements[i].num == ind) {
-                elements[i].status = true;
+        int in = capacity;
+        for (int index = 0;index<capacity; index++){
+            if (elements[index] != null && elements[index].num == ind) {
+                elements[index].status = true;
                 available--;
                 if (available == 0) existSmth = false;
-                return elements[i].data;
+                //return elements[index].data;
+                in = index;
             }
         }
-        return null;
+
+
+            System.out.println("[BUFFER take AFTER]: writePos " + writePos + ", available " + available + ", element " + ind);
+            for (int i = 0; i<capacity; i++){
+                if (elements[i] != null) {
+                    System.out.println("\t\t\t" + i + " #" + elements[i].num + " " + elements[i].status);
+                }
+                else{
+                    System.out.println("\t\t\t" + i + " is null");
+                }
+            }
+
+        if (in != capacity)
+        return elements[in].data;
+        else
+        return null; // это было
     }
     
     // возвращает сигнал, можно ли продолжать добавлять

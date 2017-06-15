@@ -94,7 +94,7 @@ public class ClientSender implements CallBack {
                     System.arraycopy(index, 0, data, 0, 4);
                     System.arraycopy(bytes, 0, data, 4, packSize_-4);
                     packet = new DatagramPacket(data, packSize_, servAddr_);
-                    //System.out.println("Send packet #" + numOfPack_);
+                    System.out.println("Send packet #" + numOfPack_);
                     if (numOfPack_ != countOfPack_) {
                         numOfPack_++;
                     }
@@ -111,11 +111,11 @@ public class ClientSender implements CallBack {
                         err_.write("Can't send a packet: " + e.getMessage());
                     }
                 }
-                try {
+                /*try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                }
+                }*/
                 synchronized (lock_) {
                     if (!isActiveTimer_) isActive_ = false;
                 }
@@ -125,7 +125,7 @@ public class ClientSender implements CallBack {
             datagramSocket_.close();
             long finish = System.currentTimeMillis();
             System.out.println("END TIME: " + LocalDateTime.now());
-            System.out.println("ALL TIME: " + (finish - start));
+            System.out.println("ALL TIME: " + (finish - start)*0.001);
             System.out.println("\tBye, ClientSender");
         }
     }
@@ -152,7 +152,7 @@ public class ClientSender implements CallBack {
                 } catch (IOException e) {
                     err_.write("Can't send a packet: " + e.getMessage());
                 }
-                //System.out.println("\t\t\t\t\tResend packet #" + ByteBuffer.wrap(pack.getData(), 0, 4).getInt());
+                System.out.println("\t\t\t\t\tResend packet #" + ByteBuffer.wrap(pack.getData(), 0, 4).getInt());
             }
             if (isAllAdded_ && packs.length == 0) {
                 synchronized (lock_) {

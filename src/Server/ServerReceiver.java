@@ -75,7 +75,7 @@ public class ServerReceiver implements Stoppable {
                         System.arraycopy(datagramBuffer, 4, data, 0, (int)lastSize_);
                     }
                     window_.put(data, index);
-                    //System.out.println("Receive #" + index);
+                    System.out.println("Receive #" + index);
                 } else {
                     System.arraycopy(datagramBuffer, 4, data, 0, datagramBuffer.length-4);
                     ByteArrayInputStream in = new ByteArrayInputStream(data);

@@ -20,24 +20,10 @@ public class SlidingWindow {
     }
 
     // для стороны отправки
-    public int available(){
-        synchronized (lock){
-            return buf.available();
-        }
-    }
-
-    // для стороны отправки
     public boolean put(Object pack){
         synchronized (lock) {
             buf.put(new Struct(currNum, pack));
             currNum++;
-            return buf.checkPut();
-        }
-    }
-
-    // для стороны отправки
-    public boolean checkPut(){
-        synchronized (lock) {
             return buf.checkPut();
         }
     }
