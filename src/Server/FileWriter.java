@@ -2,6 +2,7 @@ package Server;
 
 import CommonUtils.LogMessageErrorWriter;
 import CommonUtils.SlidingWindow;
+import CommonUtils.Sound;
 import CommonUtils.Stoppable;
 
 import java.io.File;
@@ -54,7 +55,7 @@ public class FileWriter implements Stoppable {
                 } catch (IOException e) {
                     err_.write("Can't write in file: " + e.getMessage());
                 }
-                System.out.println("\t\tWrote #" + currCountPack_);
+                //System.out.println("\t\tWrote #" + currCountPack_);
                 if (currCountPack_ == countPack_) {
                     isActive_ = false;
                 }
@@ -75,6 +76,7 @@ public class FileWriter implements Stoppable {
             }
             System.out.println("\tBye, FileWriter");
             classServer_.stop();
+            Sound.playSound("C:\\Users\\1\\IdeaProjects\\UDP_lab\\src" + File.separator + "SP0000.WAV").join();
         }
     }
 }

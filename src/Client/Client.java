@@ -69,9 +69,28 @@ public class Client implements CallBack {
     public void run() {
         System.out.println("Choose file. Please, write the number from list:");
         File[] listFiles = folder_.listFiles();
-        for (int i = 0; i<listFiles.length; i++){
-            System.out.println("\t" + i + ") " + listFiles[i].getName());
-            long size = listFiles[i].length();
+
+        // сортируем по возрастанию размера файла
+        File[] sortList = new File[listFiles.length];
+        for(int i = 0; i<sortList.length; i++){
+            long minSize = listFiles[0].length();
+            int jmin = 0;
+            for (int j=1; j<listFiles.length; j++){
+                if (minSize>listFiles[j].length()){
+                    minSize = listFiles[j].length();
+                    jmin = j;
+                }
+            }
+            sortList[i] = listFiles[jmin];
+            File[] copy = new File[listFiles.length-1];
+            System.arraycopy(listFiles, 0, copy, 0, jmin);
+            System.arraycopy(listFiles, jmin+1, copy, jmin, listFiles.length-jmin-1);
+            listFiles = copy;
+        }
+
+        for (int i = 0; i<sortList.length; i++){
+            System.out.println("\t" + i + ") " + sortList[i].getName());
+            long size = sortList[i].length();
             if (size<1000) System.out.printf("\t\t\t\t[SIZE: %d B]%n", size);
             else {
                 if (size < 1000000) System.out.printf("\t\t\t\t[SIZE: %,.2f KB]%n", size * 0.001);
@@ -90,10 +109,10 @@ public class Client implements CallBack {
             return;
         }
         String filename_;
-        if (number>=0 && number<listFiles.length) {
-            filename_ = listFiles[number].getName();
+        if (number>=0 && number<sortList.length) {
+            filename_ = sortList[number].getName();
             System.out.println("Ok, you choose a file: " + filename_);
-            long size = listFiles[number].length();
+            long size = sortList[number].length();
             if (size<1000) System.out.printf("\t\t\t\t[SIZE: %d B]%n", size);
             else {
                 if (size < 1000000) System.out.printf("\t\t\t\t[SIZE: %,.2f KB]%n", size * 0.001);

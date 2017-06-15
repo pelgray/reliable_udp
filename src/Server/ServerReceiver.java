@@ -74,8 +74,11 @@ public class ServerReceiver implements Stoppable {
                         data = new byte[(int)lastSize_];
                         System.arraycopy(datagramBuffer, 4, data, 0, (int)lastSize_);
                     }
-                    window_.put(data, index);
-                    System.out.println("Receive #" + index);
+                    boolean check = window_.put(data, index);
+                    if (check) { // если пакет успешно добавлен в окно, подтверждаем получение
+                        //System.out.println("Receive #" + index);
+                        classServer_.setDeliveredPacket(index);
+                    }
                 } else {
                     System.arraycopy(datagramBuffer, 4, data, 0, datagramBuffer.length-4);
                     ByteArrayInputStream in = new ByteArrayInputStream(data);
@@ -92,8 +95,9 @@ public class ServerReceiver implements Stoppable {
                     countPack_ = initPack.getCountPack();
                     classServer_.startFileWriter(initPack.getFilename(), countPack_);
                     System.out.println("Will be received " + countPack_ + " packets.");
+
+                    classServer_.setDeliveredPacket(index);
                 }
-                classServer_.setDeliveredPacket(index);
                 if (!classServer_.isActive()) {
                     isActive_ = false;
                 }

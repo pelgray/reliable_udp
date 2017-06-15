@@ -7,6 +7,7 @@ import java.net.DatagramPacket;
  */
 public class SlidingWindow {
     private RingBuffer buf = null;
+    private int size;
     private int currNum = 0; // текущий номер последнего добавленного объекта (для стороны отсылки)
     private int currInd = 1; // текущий индекс полученного в упорядоченном порядке объекта
     private boolean canPut = true; // можно ли добавить объект
@@ -16,12 +17,14 @@ public class SlidingWindow {
 
     public SlidingWindow(int size, LogMessageErrorWriter errorWriter) {
         this.err = errorWriter;
+        this.size = size;
         buf = new RingBuffer(size);
     }
 
     // для стороны отправки
     public boolean put(Object pack){
         synchronized (lock) {
+            //System.out.println("[SW] put");
             buf.put(new Struct(currNum, pack));
             currNum++;
             return buf.checkPut();
@@ -31,6 +34,7 @@ public class SlidingWindow {
     // для стороны отправки
     public boolean setDelivered(int ind){
         synchronized (lock) {
+            //System.out.println("[SW] setDelivered");
             return buf.setStatus(ind);
         }
     }
@@ -38,6 +42,7 @@ public class SlidingWindow {
     // для стороны отправки
     public DatagramPacket[] getNonDelivered(){
         synchronized (lock) {
+            //System.out.println("[SW] getNonDelivered");
             return buf.takeUnmarked();
         }
     }
@@ -46,7 +51,7 @@ public class SlidingWindow {
 
     //---------------------------------------------------------------------------------------------------------------------------------------
     // для стороны приема
-    public void put(Object ob, int ind){
+    public boolean put(Object ob, int ind){
         synchronized (lock) {
             while(!canPut) {
                 try {
@@ -55,14 +60,16 @@ public class SlidingWindow {
                     err.write("The error of waiting in 'put'-condition.");
                 }
             }
-            if (ind >= currInd) {
+            if (ind >= currInd && ind <currInd+size) {
                 buf.put(new Struct(ind, ob));
                 if (ind == currInd){
                     canTake = true;
                     lock.notify();
                 }
                 canPut = buf.checkPut();
+                return true;
             }
+            else return false;
         }
     }
 

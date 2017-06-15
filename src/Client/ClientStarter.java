@@ -3,6 +3,8 @@ package Client;
 import CommonUtils.LogMessageErrorFactoryMethod;
 import CommonUtils.LogMessageErrorWriter;
 
+import java.io.*;
+
 import static CommonUtils.MessageErrorType.STANDARD;
 
 /**

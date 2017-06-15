@@ -94,7 +94,7 @@ public class ClientSender implements CallBack {
                     System.arraycopy(index, 0, data, 0, 4);
                     System.arraycopy(bytes, 0, data, 4, packSize_-4);
                     packet = new DatagramPacket(data, packSize_, servAddr_);
-                    System.out.println("Send packet #" + numOfPack_);
+                    //System.out.println("Send packet #" + numOfPack_);
                     if (numOfPack_ != countOfPack_) {
                         numOfPack_++;
                     }
@@ -142,17 +142,19 @@ public class ClientSender implements CallBack {
     }
 
     private void resend(){
+        //System.out.println("[TIMER] doResend");
         DatagramPacket[] packs = null;
-            //synchronized (lock_) {
+        synchronized (lock_) {
             packs = window_.getNonDelivered();
-            //}
+        }
+        //System.out.println("[TIMER] packs.length = " + packs.length);
             for (DatagramPacket pack : packs) {
                 try {
                     datagramSocket_.send(pack);
                 } catch (IOException e) {
                     err_.write("Can't send a packet: " + e.getMessage());
                 }
-                System.out.println("\t\t\t\t\tResend packet #" + ByteBuffer.wrap(pack.getData(), 0, 4).getInt());
+                //System.out.println("\t\t\t\t\tResend packet #" + ByteBuffer.wrap(pack.getData(), 0, 4).getInt());
             }
             if (isAllAdded_ && packs.length == 0) {
                 synchronized (lock_) {
