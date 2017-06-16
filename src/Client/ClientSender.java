@@ -6,6 +6,7 @@ import CommonUtils.LogMessageErrorWriter;
 import CommonUtils.SlidingWindow;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
@@ -117,7 +118,10 @@ public class ClientSender implements CallBack {
                     e.printStackTrace();
                 }*/
                 synchronized (lock_) {
-                    if (!isActiveTimer_) isActive_ = false;
+                    if (!isActiveTimer_) {
+                        isActive_ = false;
+                        //System.setOut(System.out);
+                    }
                 }
                 //canPut_ = window_.checkPut();
             }

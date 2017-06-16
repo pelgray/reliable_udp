@@ -38,6 +38,21 @@ class ServerStarter {
         System.out.println("The own port = " + port_+
                 "\nThe client port = " + clientPort_);
 
+//        File outfile = new File("C:\\Users\\1\\IdeaProjects\\UDP_lab\\outServer.txt");
+//        if (!outfile.exists()) try {
+//            outfile.createNewFile();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        FileOutputStream fos = null;
+//        try {
+//            fos = new FileOutputStream(outfile);
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
+//        System.setOut(new PrintStream(fos));
+
+
         Server classServer = new Server(port_, host_, clientPort_, errorWriter);
         Thread server = new Thread(classServer);
         server.setName("SERVER");

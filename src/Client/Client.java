@@ -4,10 +4,7 @@ import CommonUtils.Channel;
 import CommonUtils.CallBack;
 import CommonUtils.LogMessageErrorWriter;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
@@ -130,6 +127,20 @@ public class Client implements CallBack {
             e_.write("File not found.");
             return;
         }
+
+//        File outfile = new File("C:\\Users\\1\\IdeaProjects\\UDP_lab\\outClient.txt");
+//        if (!outfile.exists()) try {
+//            outfile.createNewFile();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        FileOutputStream fos = null;
+//        try {
+//            fos = new FileOutputStream(outfile);
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
+//        System.setOut(new PrintStream(fos));
 
         Channel<byte[]> byteChannel_ = new Channel<>(channelSize_, e_);
         classFileReader_ = new FileReader(this, file_,packSize_-4,byteChannel_,e_);

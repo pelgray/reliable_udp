@@ -27,7 +27,7 @@ public class SlidingWindow {
             //System.out.println("[SW] put");
             buf.put(new Struct(currNum, pack));
             currNum++;
-            return buf.checkPut();
+            return buf.checkPutSending();
         }
     }
 
@@ -61,13 +61,17 @@ public class SlidingWindow {
                 }
             }
             if (ind >= currInd && ind <currInd+size) {
-                buf.put(new Struct(ind, ob));
-                if (ind == currInd){
-                    canTake = true;
-                    lock.notify();
+                int place = ind%size;
+                if (buf.checkPut(place)) {
+                    buf.put(new Struct(ind, ob), place);
+                    if (ind == currInd) {
+                        canTake = true;
+                        lock.notify();
+                    }
+                    canPut = buf.checkPutReceiving();
+                    return true;
                 }
-                canPut = buf.checkPut();
-                return true;
+                else return false;
             }
             else return false;
         }
@@ -86,7 +90,7 @@ public class SlidingWindow {
             Object rtn = buf.take(currInd);
             currInd++;
             canTake = buf.checkTake(currInd);
-            canPut = buf.checkPut();
+            canPut = buf.checkPutReceiving();
             if (canPut) lock.notify();
             return rtn;
         }

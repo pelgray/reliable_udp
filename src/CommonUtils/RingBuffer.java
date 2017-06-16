@@ -23,17 +23,27 @@ class RingBuffer {
         return available;
     }
 
-    public boolean checkPut() {
+    public boolean checkPutSending() {
         return available < capacity && ((elements[writePos] == null) || (elements[writePos].status));
+    }
+
+    public boolean checkPutReceiving() {
+        return available < capacity;
+    }
+
+    public boolean checkPut(int place) {
+        return ((elements[place] == null) || (elements[place].status));
     }
 
     public boolean checkTake(int ind){
         if (existSmth) {
-            for (int i = 0; i < capacity; i++) {
-                if (elements[i] != null && elements[i].num == ind) {
-                    return true;
-                }
-            }
+//            for (int i = 0; i < capacity; i++) {
+//                if (elements[i] != null && elements[i].num == ind) {
+//                    return true;
+//                }
+//            }
+            int place = ind%capacity;
+            if (elements[place] != null && elements[place].num == ind) return true;
         }
         return false;
     }
@@ -70,6 +80,34 @@ class RingBuffer {
 //            }
     }
 
+    public void put(Struct element, int place){
+//        System.out.println("[BUFFER put (place) BEFORE]: place " + place + ", available " + available + ", element " + element.num + "\texistSmth = " + existSmth);
+//        for (int i = 0; i<capacity; i++){
+//            if (elements[i] != null) {
+//                System.out.println("\t\t\t" + i + " #" + elements[i].num + " " + elements[i].status);
+//            }
+//            else{
+//                System.out.println("\t\t\t" + i + " is null");
+//            }
+//        }
+
+
+        elements[place] = element;
+        if (available != capacity) available++;
+        if (!existSmth) existSmth = true;
+
+
+//        System.out.println("[BUFFER put (place) AFTER]: place " + place + ", available " + available + ", element " + element.num + "\texistSmth = " + existSmth);
+//        for (int i = 0; i<capacity; i++){
+//            if (elements[i] != null) {
+//                System.out.println("\t\t\t" + i + " #" + elements[i].num + " " + elements[i].status);
+//            }
+//            else{
+//                System.out.println("\t\t\t" + i + " is null");
+//            }
+//        }
+    }
+
     public Object take(int ind) {
 //            System.out.println("[BUFFER take BEFORE]: writePos " + writePos + ", available " + available + ", element " + ind + "\texistSmth = " + existSmth);
 //            for (int i = 0; i<capacity; i++){
@@ -85,16 +123,26 @@ class RingBuffer {
         if(!existSmth){
             return null;
         }
-        int in = capacity;
-        for (int index = 0;index<capacity; index++){
-            if (elements[index] != null && elements[index].num == ind) {
-                elements[index].status = true;
+//        int in = capacity;
+//        for (int index = 0;index<capacity; index++){
+//            if (elements[index] != null && elements[index].num == ind) {
+//                elements[index].status = true;
+//                available--;
+//                if (available == 0) existSmth = false;
+//                //return elements[index].data;
+//                in = index;
+//            }
+//        }
+
+        int in = ind%capacity;
+        boolean flag = false;
+
+            if (elements[in] != null && elements[in].num == ind) {
+                elements[in].status = true;
                 available--;
                 if (available == 0) existSmth = false;
-                //return elements[index].data;
-                in = index;
+                flag = true;
             }
-        }
 
 
 //            System.out.println("[BUFFER take AFTER]: writePos " + writePos + ", available " + available + ", element " + ind + "\texistSmth = " + existSmth);
@@ -107,10 +155,15 @@ class RingBuffer {
 //                }
 //            }
 
-        if (in != capacity)
+//        if (in != capacity)
+//        return elements[in].data;
+//        else
+//        return null; // это было
+
+        if (flag)
         return elements[in].data;
         else
-        return null; // это было
+        return null;
     }
     
     // возвращает сигнал, можно ли продолжать добавлять
