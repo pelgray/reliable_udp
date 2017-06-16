@@ -23,6 +23,8 @@ public class FileWriter implements Stoppable {
     private final Server classServer_;
     private final File file_;
 
+    private long start;
+
     public FileWriter(SlidingWindow window_, File file, LogMessageErrorWriter errorWriter, Server server, long countPack) {
         this.isActive_ = true;
         this.window_ = window_;
@@ -48,6 +50,7 @@ public class FileWriter implements Stoppable {
     @Override
     public void run() {
         try {
+            start = System.currentTimeMillis();
             while (isActive_) {
                 byte[] bytes = (byte[]) window_.take();
                 try {
@@ -62,6 +65,8 @@ public class FileWriter implements Stoppable {
                 currCountPack_++;
             }
         }finally {
+            long finish = System.currentTimeMillis();
+            System.out.println("ALL TIME: " + (finish - start)*0.001);
             try {
                 fos_.close();
             } catch (IOException e) {

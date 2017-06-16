@@ -34,7 +34,7 @@ public class ClientSender implements CallBack {
     private boolean canPut_;
     private final Object lock_ = new Object();
     private Timer timer = new Timer();
-    private final long TIME_OUT = 2000;
+    private final long TIME_OUT = 1000;
     private long start;
 
     public ClientSender(int winSize_, LogMessageErrorWriter errorWriter, DatagramSocket datagramSocket, Channel<byte[]> channel, ClientReceiver receiver, InetSocketAddress servAddr, int packSize) {

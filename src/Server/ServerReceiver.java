@@ -22,6 +22,7 @@ public class ServerReceiver implements Stoppable {
     private final Server classServer_;
     private long countPack_;
     private long lastSize_;
+    private boolean isReceiveInitPack;
 
     public ServerReceiver(DatagramSocket datagramSocket_, int packSize_, LogMessageErrorWriter err_, Server classServer_, SlidingWindow win) {
         this.datagramSocket_ = datagramSocket_;
@@ -30,6 +31,7 @@ public class ServerReceiver implements Stoppable {
         this.classServer_ = classServer_;
         isActive_ = true;
         window_ = win;
+        isReceiveInitPack = false;
     }
 
     @Override
@@ -80,22 +82,24 @@ public class ServerReceiver implements Stoppable {
                         classServer_.setDeliveredPacket(index);
                     }
                 } else {
-                    System.arraycopy(datagramBuffer, 4, data, 0, datagramBuffer.length-4);
-                    ByteArrayInputStream in = new ByteArrayInputStream(data);
-                    InitPackage initPack = null;
-                    try {
-                        ObjectInputStream ois = new ObjectInputStream(in);
-                        initPack = (InitPackage) ois.readObject();
-                        in.close();
-                        ois.close();
-                    } catch (IOException | ClassNotFoundException e) {
-                        e.printStackTrace();
+                    if (!isReceiveInitPack) {
+                        System.arraycopy(datagramBuffer, 4, data, 0, datagramBuffer.length - 4);
+                        ByteArrayInputStream in = new ByteArrayInputStream(data);
+                        InitPackage initPack = null;
+                        try {
+                            ObjectInputStream ois = new ObjectInputStream(in);
+                            initPack = (InitPackage) ois.readObject();
+                            in.close();
+                            ois.close();
+                        } catch (IOException | ClassNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                        lastSize_ = initPack != null ? initPack.getSizeLastPack() : 0;
+                        countPack_ = initPack.getCountPack();
+                        classServer_.startFileWriter(initPack.getFilename(), countPack_);
+                        System.out.println("Will be received " + countPack_ + " packets.");
+                        isReceiveInitPack = true;
                     }
-                    lastSize_ = initPack != null ? initPack.getSizeLastPack() : 0;
-                    countPack_ = initPack.getCountPack();
-                    classServer_.startFileWriter(initPack.getFilename(), countPack_);
-                    System.out.println("Will be received " + countPack_ + " packets.");
-
                     classServer_.setDeliveredPacket(index);
                 }
                 if (!classServer_.isActive()) {
