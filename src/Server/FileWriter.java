@@ -50,7 +50,7 @@ public class FileWriter implements Stoppable {
     @Override
     public void run() {
         try {
-            start = System.currentTimeMillis();
+            start = System.nanoTime();
             while (isActive_) {
                 byte[] bytes = (byte[]) window_.take();
                 try {
@@ -58,15 +58,13 @@ public class FileWriter implements Stoppable {
                 } catch (IOException e) {
                     err_.write("Can't write in file: " + e.getMessage());
                 }
-                //System.out.println("\t\tWrote #" + currCountPack_);
                 if (currCountPack_ == countPack_) {
                     isActive_ = false;
                 }
                 currCountPack_++;
             }
         }finally {
-            long finish = System.currentTimeMillis();
-            System.out.println("ALL TIME: " + (finish - start)*0.001);
+            long finish = System.nanoTime();
             try {
                 fos_.close();
             } catch (IOException e) {
@@ -79,6 +77,7 @@ public class FileWriter implements Stoppable {
                 if (size < 1000000) System.out.printf("[%,.2f KB] was received.%n", size * 0.001);
                 else System.out.printf("[%,.2f MB] was received.%n", size * 1e-6);
             }
+            System.out.println("[TIME sec]: " + (finish - start)*1e-9);
             System.out.println("\tBye, FileWriter");
             classServer_.stop();
             Sound.playSound("C:\\Users\\1\\IdeaProjects\\UDP_lab\\src" + File.separator + "SP0000.WAV").join();

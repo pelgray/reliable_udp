@@ -3,8 +3,6 @@ package Client;
 import CommonUtils.LogMessageErrorFactoryMethod;
 import CommonUtils.LogMessageErrorWriter;
 
-import java.io.*;
-
 import static CommonUtils.MessageErrorType.STANDARD;
 
 /**
@@ -15,11 +13,6 @@ class ClientStarter {
         int port_; // порт для передачи данных
         String host_; // адрес, куда
         int servPort_; //порт для приема сообщений
-
-        // из аргументов:
-        // порт для передачи файла
-        // адрес, куда
-        // порт для приема сообщений
 
         LogMessageErrorWriter errorWriter = (new LogMessageErrorFactoryMethod()).getWriter("default", STANDARD);
         if (errorWriter == null){

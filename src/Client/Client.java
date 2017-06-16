@@ -13,8 +13,6 @@ import java.net.SocketException;
  * Created by pelgray on 06.06.2017.
  */
 public class Client implements CallBack {
-    // путь к файлу - спрашивается при запуске (точнее, название файла в отведенной папке)
-
     private boolean isActive_;
     private final int packSize_ = 2048; //размер одного пакета
     private final int winSize_ = 5; //размер окна, а также циклического буфера 5
@@ -64,8 +62,11 @@ public class Client implements CallBack {
 
     @Override
     public void run() {
-        System.out.println("Choose file. Please, write the number from list:");
         File[] listFiles = folder_.listFiles();
+        if (listFiles == null || listFiles.length == 0){
+            e_.write("Files in the folder not found. Please, add the necessary files to the folder: " + folder_.getAbsolutePath());
+            return;
+        }
 
         // сортируем по возрастанию размера файла
         File[] sortList = new File[listFiles.length];
@@ -85,6 +86,7 @@ public class Client implements CallBack {
             listFiles = copy;
         }
 
+        System.out.println("Choose file. Please, write the number from list:");
         for (int i = 0; i<sortList.length; i++){
             System.out.println("\t" + i + ") " + sortList[i].getName());
             long size = sortList[i].length();
@@ -127,20 +129,6 @@ public class Client implements CallBack {
             e_.write("File not found.");
             return;
         }
-
-//        File outfile = new File("C:\\Users\\1\\IdeaProjects\\UDP_lab\\outClient.txt");
-//        if (!outfile.exists()) try {
-//            outfile.createNewFile();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        FileOutputStream fos = null;
-//        try {
-//            fos = new FileOutputStream(outfile);
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        }
-//        System.setOut(new PrintStream(fos));
 
         Channel<byte[]> byteChannel_ = new Channel<>(channelSize_, e_);
         classFileReader_ = new FileReader(this, file_,packSize_-4,byteChannel_,e_);

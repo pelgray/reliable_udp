@@ -7,7 +7,7 @@ import java.net.DatagramPacket;
  */
 public class SlidingWindow {
     private RingBuffer buf = null;
-    private int size;
+    private final int size;
     private int currNum = 0; // текущий номер последнего добавленного объекта (для стороны отсылки)
     private int currInd = 1; // текущий индекс полученного в упорядоченном порядке объекта
     private boolean canPut = true; // можно ли добавить объект
@@ -24,7 +24,6 @@ public class SlidingWindow {
     // для стороны отправки
     public boolean put(Object pack){
         synchronized (lock) {
-            //System.out.println("[SW] put");
             buf.put(new Struct(currNum, pack));
             currNum++;
             return buf.checkPutSending();
@@ -34,7 +33,6 @@ public class SlidingWindow {
     // для стороны отправки
     public boolean setDelivered(int ind){
         synchronized (lock) {
-            //System.out.println("[SW] setDelivered");
             return buf.setStatus(ind);
         }
     }
@@ -42,7 +40,6 @@ public class SlidingWindow {
     // для стороны отправки
     public DatagramPacket[] getNonDelivered(){
         synchronized (lock) {
-            //System.out.println("[SW] getNonDelivered");
             return buf.takeUnmarked();
         }
     }
@@ -71,9 +68,8 @@ public class SlidingWindow {
                     canPut = buf.checkPutReceiving();
                     return true;
                 }
-                else return false;
             }
-            else return false;
+            return false;
         }
     }
 

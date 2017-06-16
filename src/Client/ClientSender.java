@@ -6,12 +6,10 @@ import CommonUtils.LogMessageErrorWriter;
 import CommonUtils.SlidingWindow;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.time.LocalDateTime;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -33,9 +31,8 @@ public class ClientSender implements CallBack {
     private boolean isAllAdded_;
     private boolean canPut_;
     private final Object lock_ = new Object();
-    private Timer timer = new Timer();
+    private final Timer timer = new Timer();
     private final long TIME_OUT = 1000;
-    private long start;
 
     public ClientSender(int winSize_, LogMessageErrorWriter errorWriter, DatagramSocket datagramSocket, Channel<byte[]> channel, ClientReceiver receiver, InetSocketAddress servAddr, int packSize) {
         this.err_ = errorWriter;
@@ -68,17 +65,14 @@ public class ClientSender implements CallBack {
     @Override
     public void run() {
         try {
-            start = System.currentTimeMillis();
-            System.out.println("\nTIME: " + LocalDateTime.now());
             byte[] bytes = byteChannel_.take();
             byte[] data = new byte[bytes.length + 4];
             byte[] index = ByteBuffer.allocate(4).putInt(numOfPack_).array(); // номер пакета
             System.arraycopy(index, 0, data, 0, 4);
             System.arraycopy(bytes, 0, data, 4, bytes.length);
             DatagramPacket packet = new DatagramPacket(data, data.length, servAddr_);
-            //synchronized (lock_) {
-                canPut_ = window_.put(packet);
-            //}
+
+            canPut_ = window_.put(packet);
             try {
                 datagramSocket_.send(packet);
             } catch (IOException e) {
@@ -95,7 +89,6 @@ public class ClientSender implements CallBack {
                     System.arraycopy(index, 0, data, 0, 4);
                     System.arraycopy(bytes, 0, data, 4, packSize_-4);
                     packet = new DatagramPacket(data, packSize_, servAddr_);
-                    //System.out.println("Send packet #" + numOfPack_);
                     if (numOfPack_ != countOfPack_) {
                         numOfPack_++;
                     }
@@ -104,7 +97,6 @@ public class ClientSender implements CallBack {
                     }
                     synchronized (lock_) {
                         canPut_ = window_.put(packet);
-                        //System.out.println("\t\tAfterSEND: canPut = " + canPut_);
                     }
                     try {
                         datagramSocket_.send(packet);
@@ -112,24 +104,14 @@ public class ClientSender implements CallBack {
                         err_.write("Can't send a packet: " + e.getMessage());
                     }
                 }
-                /*try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }*/
                 synchronized (lock_) {
                     if (!isActiveTimer_) {
                         isActive_ = false;
-                        //System.setOut(System.out);
                     }
                 }
-                //canPut_ = window_.checkPut();
             }
         }finally {
             datagramSocket_.close();
-            long finish = System.currentTimeMillis();
-            System.out.println("END TIME: " + LocalDateTime.now());
-            System.out.println("ALL TIME: " + (finish - start)*0.001);
             System.out.println("\tBye, ClientSender");
         }
     }
@@ -146,31 +128,24 @@ public class ClientSender implements CallBack {
     }
 
     private void resend(){
-        //System.out.println("[TIMER] doResend");
-        DatagramPacket[] packs = null;
+        DatagramPacket[] packs;
         synchronized (lock_) {
             packs = window_.getNonDelivered();
         }
-        //System.out.println("[TIMER] packs.length = " + packs.length);
-            for (DatagramPacket pack : packs) {
-                try {
-                    datagramSocket_.send(pack);
-                } catch (IOException e) {
-                    err_.write("Can't send a packet: " + e.getMessage());
-                }
-                //System.out.println("\t\t\t\t\tResend packet #" + ByteBuffer.wrap(pack.getData(), 0, 4).getInt());
+        for (DatagramPacket pack : packs) {
+            try {
+                datagramSocket_.send(pack);
+            } catch (IOException e) {
+                err_.write("Can't send a packet: " + e.getMessage());
             }
-            if (isAllAdded_ && packs.length == 0) {
-                synchronized (lock_) {
-                    isActiveTimer_ = false;
-                }
-                System.out.println("Timer is off.");
-                classReceiver_.senderFinished();
-                timer.cancel();
+        }
+        if (isAllAdded_ && packs.length == 0) {
+            synchronized (lock_) {
+                isActiveTimer_ = false;
             }
-            //synchronized (lock_) {
-            //canPut_ = window_.checkPut();
-            //}
-
+            System.out.println("\tTimer is off.");
+            classReceiver_.senderFinished();
+            timer.cancel();
+        }
     }
 }

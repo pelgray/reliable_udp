@@ -61,7 +61,6 @@ public class FileReader implements Stoppable {
             }
             byte[] initBytes = outs.toByteArray();
             System.out.println("Will be created "+ countPack_ + " packets. InitPack has size = " + initBytes.length + ". LastSize = "+lastSize);
-            // инициализирующий пакет
             channel_.put(initBytes);
             while (isActive_) {
                 try {

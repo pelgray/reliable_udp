@@ -19,10 +19,6 @@ class RingBuffer {
         this.elements = new Struct[capacity];
     }
 
-    public int available(){
-        return available;
-    }
-
     public boolean checkPutSending() {
         return available < capacity && ((elements[writePos] == null) || (elements[writePos].status));
     }
@@ -37,11 +33,6 @@ class RingBuffer {
 
     public boolean checkTake(int ind){
         if (existSmth) {
-//            for (int i = 0; i < capacity; i++) {
-//                if (elements[i] != null && elements[i].num == ind) {
-//                    return true;
-//                }
-//            }
             int place = ind%capacity;
             if (elements[place] != null && elements[place].num == ind) return true;
         }
@@ -49,17 +40,6 @@ class RingBuffer {
     }
 
     public void put(Struct element){
-//            System.out.println("[BUFFER put BEFORE]: writePos " + writePos + ", available " + available + ", element " + element.num + "\texistSmth = " + existSmth);
-//            for (int i = 0; i<capacity; i++){
-//                if (elements[i] != null) {
-//                    System.out.println("\t\t\t" + i + " #" + elements[i].num + " " + elements[i].status);
-//                }
-//                else{
-//                    System.out.println("\t\t\t" + i + " is null");
-//                }
-//            }
-
-
         elements[writePos] = element;
         writePos++;
         if(writePos == capacity){
@@ -67,117 +47,30 @@ class RingBuffer {
         }
         if (available != capacity) available++;
         if (!existSmth) existSmth = true;
-
-
-//            System.out.println("[BUFFER put AFTER]: writePos " + writePos + ", available " + available + ", element " + element.num + "\texistSmth = " + existSmth);
-//            for (int i = 0; i<capacity; i++){
-//                if (elements[i] != null) {
-//                    System.out.println("\t\t\t" + i + " #" + elements[i].num + " " + elements[i].status);
-//                }
-//                else{
-//                    System.out.println("\t\t\t" + i + " is null");
-//                }
-//            }
     }
 
     public void put(Struct element, int place){
-//        System.out.println("[BUFFER put (place) BEFORE]: place " + place + ", available " + available + ", element " + element.num + "\texistSmth = " + existSmth);
-//        for (int i = 0; i<capacity; i++){
-//            if (elements[i] != null) {
-//                System.out.println("\t\t\t" + i + " #" + elements[i].num + " " + elements[i].status);
-//            }
-//            else{
-//                System.out.println("\t\t\t" + i + " is null");
-//            }
-//        }
-
-
         elements[place] = element;
         if (available != capacity) available++;
         if (!existSmth) existSmth = true;
-
-
-//        System.out.println("[BUFFER put (place) AFTER]: place " + place + ", available " + available + ", element " + element.num + "\texistSmth = " + existSmth);
-//        for (int i = 0; i<capacity; i++){
-//            if (elements[i] != null) {
-//                System.out.println("\t\t\t" + i + " #" + elements[i].num + " " + elements[i].status);
-//            }
-//            else{
-//                System.out.println("\t\t\t" + i + " is null");
-//            }
-//        }
     }
 
     public Object take(int ind) {
-//            System.out.println("[BUFFER take BEFORE]: writePos " + writePos + ", available " + available + ", element " + ind + "\texistSmth = " + existSmth);
-//            for (int i = 0; i<capacity; i++){
-//                if (elements[i] != null) {
-//                    System.out.println("\t\t\t" + i + " #" + elements[i].num + " " + elements[i].status);
-//                }
-//                else{
-//                    System.out.println("\t\t\t" + i + " is null");
-//                }
-//            }
-
-
         if(!existSmth){
             return null;
         }
-//        int in = capacity;
-//        for (int index = 0;index<capacity; index++){
-//            if (elements[index] != null && elements[index].num == ind) {
-//                elements[index].status = true;
-//                available--;
-//                if (available == 0) existSmth = false;
-//                //return elements[index].data;
-//                in = index;
-//            }
-//        }
-
         int in = ind%capacity;
-        boolean flag = false;
-
-            if (elements[in] != null && elements[in].num == ind) {
-                elements[in].status = true;
-                available--;
-                if (available == 0) existSmth = false;
-                flag = true;
-            }
-
-
-//            System.out.println("[BUFFER take AFTER]: writePos " + writePos + ", available " + available + ", element " + ind + "\texistSmth = " + existSmth);
-//            for (int i = 0; i<capacity; i++){
-//                if (elements[i] != null) {
-//                    System.out.println("\t\t\t" + i + " #" + elements[i].num + " " + elements[i].status);
-//                }
-//                else{
-//                    System.out.println("\t\t\t" + i + " is null");
-//                }
-//            }
-
-//        if (in != capacity)
-//        return elements[in].data;
-//        else
-//        return null; // это было
-
-        if (flag)
-        return elements[in].data;
-        else
+        if (elements[in] != null && elements[in].num == ind) {
+            elements[in].status = true;
+            available--;
+            if (available == 0) existSmth = false;
+            return elements[in].data;
+        }
         return null;
     }
     
     // возвращает сигнал, можно ли продолжать добавлять
     public boolean setStatus(int ind){
-//        System.out.println("[BUFFER setStatus BEFORE]: ind " + ind + ", available " + available + ",\texistSmth = " + existSmth);
-//        for (int i = 0; i<capacity; i++){
-//            if (elements[i] != null) {
-//                System.out.println("\t\t\t" + i + " #" + elements[i].num + " " + elements[i].status);
-//            }
-//            else{
-//                System.out.println("\t\t\t" + i + " is null");
-//            }
-//        }
-
         for (int i = 0; i<capacity; i++){
             if (elements[i] != null && elements[i].num == ind) {
                 if (!elements[i].status) {
@@ -187,39 +80,15 @@ class RingBuffer {
                 }
             }
         }
-
-//        System.out.println("[BUFFER setStatus AFTER]: ind " + ind + ", available " + available + "\texistSmth = " + existSmth);
-//        for (int i = 0; i<capacity; i++){
-//            if (elements[i] != null) {
-//                System.out.println("\t\t\t" + i + " #" + elements[i].num + " " + elements[i].status);
-//            }
-//            else{
-//                System.out.println("\t\t\t" + i + " is null");
-//            }
-//        }
         return available < capacity && ((elements[writePos] == null) || (elements[writePos].status));
     }
 
     public DatagramPacket[] takeUnmarked(){
-
-//        System.out.println("[BUFFER [takeUnmarked]  ]:  ARRAY" + "\texistSmth = " + existSmth);
-//        for (int i = 0; i<capacity; i++){
-//            if (elements[i] != null) {
-//                System.out.println("\t\t\t" + i + " #" + elements[i].num + " " + elements[i].status);
-//            }
-//            else{
-//                System.out.println("\t\t\t" + i + " is null");
-//            }
-//        }
-
-        //System.out.println("[BUFFER [takeUnmarked]  ]:  LINKED_LIST, \texistSmth = " + existSmth);
-
         LinkedList<Object> res = new LinkedList<>();
         if (existSmth){
             for (int i = 0; i<capacity; i++){
                 if (elements[i] != null && !elements[i].status) {
                     res.add(elements[i].data);
-                    //System.out.println("\t\t\t" + i + " #" + elements[i].num + " " + elements[i].status);
                 }
             }
         }

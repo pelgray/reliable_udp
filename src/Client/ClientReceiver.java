@@ -53,7 +53,6 @@ public class ClientReceiver implements Stoppable {
                     e.printStackTrace();
                 }
                 int index = java.nio.ByteBuffer.wrap(packet.getData()).getInt();
-                //System.out.println("\t\tDelivered #" + index);
                 classClient_.setDeliveredPacket(index);
                 if (senderFinished_) isActive_ = false;
             }

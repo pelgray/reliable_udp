@@ -78,7 +78,6 @@ public class ServerReceiver implements Stoppable {
                     }
                     boolean check = window_.put(data, index);
                     if (check) { // если пакет успешно добавлен в окно, подтверждаем получение
-                        //System.out.println("Receive #" + index);
                         classServer_.setDeliveredPacket(index);
                     }
                 } else {
@@ -94,13 +93,16 @@ public class ServerReceiver implements Stoppable {
                         } catch (IOException | ClassNotFoundException e) {
                             e.printStackTrace();
                         }
-                        lastSize_ = initPack != null ? initPack.getSizeLastPack() : 0;
-                        countPack_ = initPack.getCountPack();
-                        classServer_.startFileWriter(initPack.getFilename(), countPack_);
-                        System.out.println("Will be received " + countPack_ + " packets.");
-                        isReceiveInitPack = true;
+                        if (initPack != null) {
+                            lastSize_ = initPack.getSizeLastPack();
+                            countPack_ = initPack.getCountPack();
+                            classServer_.startFileWriter(initPack.getFilename(), countPack_);
+                            System.out.println("Will be received " + countPack_ + " packets.");
+                            isReceiveInitPack = true;
+                            classServer_.setDeliveredPacket(index);
+                        }
                     }
-                    classServer_.setDeliveredPacket(index);
+                    else classServer_.setDeliveredPacket(index);
                 }
                 if (!classServer_.isActive()) {
                     isActive_ = false;
